@@ -14,6 +14,7 @@ const mongoOptions = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     authSource: 'admin',
+    useFindAndModify: false,
     user: process.env.MONGODB_USER,
     pass: process.env.MONGODB_PASS
 }
