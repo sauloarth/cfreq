@@ -1,7 +1,7 @@
 const Ponto = require('../models/PontoModel');
 const Funcionario = require('../models/FuncionarioModel');
 const Depto = require('../models/DeptoModel');
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, param } = require('express-validator');
 const apiResponse = require('../utils/apiResponse');
 const isAuthenticated = require('../middlewares/isAuthenticated');
 
@@ -20,6 +20,20 @@ exports.pontoList = [
     }
 ]
 
+exports.pontoListByFuncionario = [
+    isAuthenticated,
+    async (req, res) => {
+        try {
+            const pontos = await Ponto.find({ funcionario: req.params.idFuncionario })
+                .populate('depto', 'descricao')
+            return apiResponse.sucessResponseWithData(res,
+                'Listagem recuperada com sucesso', pontos);
+        } catch (error) {
+            return apiResponse.errorResponse(res, error);
+        }
+    }
+]
+
 exports.pontoCreate = [
     isAuthenticated,
     body('mes', 'Entrada inválida para o mês')
@@ -28,7 +42,7 @@ exports.pontoCreate = [
         .isInt({ min: 0, max: 9999 }).trim().escape()
         .custom((ano, { req }) => {
             return Ponto.findOne({
-                mes: req.body.mes, ano, funcionario: req.body.funcionario,
+                mes: req.body.mes, ano, funcionario: req.params.idFuncionario,
                 depto: req.body.depto, _id: { '$ne': req.params.id }
             }).then(ponto => {
                 if (ponto)
@@ -36,7 +50,7 @@ exports.pontoCreate = [
             })
 
         }).bail(),
-    body('funcionario')
+    param('idFuncionario')
         .custom(funcionario => {
             return Funcionario.findOne({ _id: funcionario, isActive: true }).then(funcionario => {
                 if (!funcionario)
@@ -53,6 +67,7 @@ exports.pontoCreate = [
 
         }),
     async (req, res) => {
+        console.log('Whatareq', req.params)
         try {
             const errors = [...validationResult(req).errors];
             if (errors.length > 0) {
@@ -60,7 +75,8 @@ exports.pontoCreate = [
                     .validationErrorWithData(res, 'Erros de validação.', errors);
             }
 
-            const { mes, ano, funcionario, depto, status, observacao } = req.body;
+            const { mes, ano, depto, status, observacao } = req.body;
+            const funcionario = req.params.idFuncionario
             const ponto = new Ponto({ mes, ano, funcionario, depto, status, observacao });
 
             const savedPonto = await ponto.save();
