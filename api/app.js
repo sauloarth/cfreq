@@ -4,10 +4,13 @@ const path = require('path');
 const dotenv = require('dotenv').config();
 const mongoose = require('mongoose');
 const apiRouter = require('./routes/api')
+const cors = require('cors');
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')))
+app.use(cors());
 
 const MONGODB_URL = process.env.MONGODB_URL;
 const mongoOptions = {
