@@ -1,11 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
+import MenuSuperior from './components/MenuSuperior';
+import ListaFuncionarios from './components/ListaFuncionarios';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <div style={{ padding: 50 }}>
+      <MenuSuperior />
+      <ListaFuncionarios />
+    </div>
   </React.StrictMode>,
   document.getElementById('root')
 );
