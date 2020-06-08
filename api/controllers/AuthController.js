@@ -7,13 +7,14 @@ const utilities = require('../utils/utilities');
 const mailer = require('../utils/mailer');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv').config();
+
+const host = process.env.HOST
 
 exports.register = [
     body('nome')
         .isLength({ min: 3 })
-        .trim().withMessage('Um nome precisa ser especificado.')
-        .isAlphanumeric()
-        .withMessage('Primeiro nome deve começar com letras.')
+        .withMessage('Um nome precisa ser especificado.')
         .escape(),
     body('matricula')
         .isLength({ min: 7, max: 8 })
@@ -54,7 +55,8 @@ exports.register = [
                         { nome, matricula, email, password: hash, optConfirmCode }
                     )
 
-                    const html = `<p>Confirme seu email.</p><p>OTP:${optConfirmCode}</p>`
+                    const html = `<h2>Confirme seu email.</h2>` +
+                        `<a href=${host}/confirm/${optConfirmCode}/${email}>Clique para confirmar seu e-mail</a>`
 
                     mailer.send(
                         'ngpapsno.freq@gmail.com',
