@@ -91,8 +91,8 @@ exports.deptoUpdate = [
         .isLength({ min: 1 }).trim().escape()
         .bail()
         .custom((sigla, { req }) => {
-            return Depto.findOne({ descricao, _id: { '$ne': req.params.id } }).then(depto => {
-                if (depto) return Promise.reject('Já existe um departamento com esta descricao');
+            return Depto.findOne({ sigla, _id: { '$ne': req.params.id } }).then(depto => {
+                if (depto) return Promise.reject('Já existe um departamento com esta sigla');
             })
         }),
     async (req, res) => {
