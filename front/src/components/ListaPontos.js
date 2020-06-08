@@ -133,6 +133,7 @@ export default function ListaPontos(props) {
             title="Pontos do Servidor"
             columns={columns}
             data={pontos}
+            options={{ pageSize: 12 }}
             editable={{
                 onRowAdd: createPonto,
                 onRowUpdate: updatePonto,

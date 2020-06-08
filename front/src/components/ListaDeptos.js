@@ -119,9 +119,23 @@ export default function ListaDeptos() {
             icons={tableIcons}
             title="Unidades"
             columns={columns}
+            localization={
+                {
+                    toolbar: {
+                        searchPlaceholder: "Buscar unidade",
+                        searchTooltip: "Buscar por unidade específica"
+                    },
+                    body: {
+                        addTooltip: "Criar unidade",
+                        editTooltip: "Editar dados da unidade",
+                        deleteTooltip: "Desativar uma unidade",
+                    }
+                }
+            }
+            options={{ pageSize: 10 }}
             actions={[{
                 icon: AssignmentIndIcon,
-                tooltip: 'Ver servidores',
+                tooltip: 'Ver servidores da unidade',
                 onClick: (event, rowData) => history.push(`funcionarios`, rowData)
             }]}
             data={deptos}

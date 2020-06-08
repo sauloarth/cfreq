@@ -121,7 +121,22 @@ export default function ListaFuncionarios(props) {
             title={`Lista de Servidores - ${props.location.state.descricao} - 
             ${props.location.state.sigla}`}
             columns={columns}
+            localization={
+                {
+                    toolbar: {
+                        searchPlaceholder: "Buscar por funcionario",
+                        searchTooltip: "Buscar por funcionario específico na unidade"
+                    },
+                    body: {
+                        addTooltip: "Cadastrar funcionario",
+                        editTooltip: "Editar dados do funcionario",
+                        deleteTooltip: "Desativar um funcionario",
+                    },
+
+                }
+            }
             data={funcionarios}
+            options={{ pageSize: 10 }}
             editable={{
                 onRowAdd: createFuncionario,
                 onRowUpdate: updateFuncionario,

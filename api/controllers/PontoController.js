@@ -26,6 +26,7 @@ exports.pontoListByFuncionario = [
         try {
             const pontos = await Ponto.find({ funcionario: req.params.idFuncionario })
                 .populate('depto', 'descricao')
+                .sort({ mes: -1, ano: -1 })
             return apiResponse.sucessResponseWithData(res,
                 'Listagem recuperada com sucesso', pontos);
         } catch (error) {

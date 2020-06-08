@@ -8,7 +8,8 @@ exports.deptoList = [
     async (req, res) => {
         try {
             const deptos = await Depto.find({ isActive: true })
-                .populate('vinculacao', 'descricao');
+                .populate('vinculacao', 'descricao')
+                .sort({ sigla: 1 });
             return apiResponse.sucessResponseWithData(res,
                 'Listagem recuperada com sucesso', deptos);
         } catch (error) {
