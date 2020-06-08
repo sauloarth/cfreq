@@ -1,4 +1,6 @@
 import React, { forwardRef, useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+
 import MaterialTable from 'material-table';
 
 import AddBox from '@material-ui/icons/AddBox';
@@ -16,6 +18,8 @@ import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
+import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
+
 
 const tableIcons = {
     Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -37,40 +41,18 @@ const tableIcons = {
     ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
-export default function ListaPontos(props) {
-    const [pontos, setPontos] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const meses = {
-        0: 'Janeiro',
-        1: 'Fevereiro',
-        2: 'Março',
-        3: 'Abril',
-        4: 'Maio',
-        5: 'Junho',
-        6: 'Julho',
-        7: 'Agosto',
-        8: 'Setembro',
-        9: 'Outubro',
-        10: 'Novembro',
-        11: 'Dezembro'
-    }
+export default function ListaDeptos() {
 
-    const status = {
-        0: 'não entregue',
-        1: 'devolvido',
-        2: 'recebido',
-        3: 'conferido'
-    }
+    const [deptos, setDeptos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [vinculacao, setVinculacao] = useState({})
+    const history = useHistory();
 
     const columns = [
-        { title: 'Ano', field: 'ano', width: 4, inicialEditValue: (new Date().getFullYear()) },
-        { title: 'Mes', field: 'mes', width: 4, type: 'numeric', lookup: meses, inicialEditValue: (new Date().getFullYear()) },
-        {
-            title: 'Lotação do Ponto', field: 'depto._id',
-            lookup: props.deptos, inicialEditValue: props.funcionario.deptoAtual._id, maxWidth: 30
-        },
-        { title: 'Status', field: 'status', width: 20, lookup: status, inicialEditValue: 0 },
-        { title: 'Obsevação', field: 'observacao', width: 200 }
+        { title: 'Codigo', field: 'codigo', width: 8 },
+        { title: 'Descrição', field: 'descricao', width: 300 },
+        { title: 'Sigla', field: 'sigla', width: 40 },
+        { title: 'Vinculado à', field: 'vinculacao._id', lookup: vinculacao, width: 200 }
     ]
 
     const headers = new Headers({
@@ -78,65 +60,75 @@ export default function ListaPontos(props) {
         'x-auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWJjNGM2MGRlMWNkMDUzZGRmNzcxZWIiLCJub21lIjoiVGVzdGVkYVNpbHZhIiwibWF0cmljdWxhIjoiMTIzNDU2NyIsImVtYWlsIjoic2F1bG9hcnRoQGdtYWlsLmNvbSIsImlhdCI6MTU4OTQ1NDMwNywiZXhwIjoxNTg5NDk3NTA3fQ.AY_7WiQkLWg_8VjsiOevxzAMLwo-8ud1SpLJy9lZKOU'
     })
 
-    const fetchPontos = () => {
-        return fetch(`http://localhost:3000/api/funcionario/${props.funcionario._id}/ponto`, { headers })
+    const fetchDeptos = () => {
+        return fetch('http://localhost:3000/api/depto', { headers })
             .then(response => response.json())
             .then(data => {
-                setPontos(data.data);
-                setLoading(false)
+                setDeptos(data.data);
+                return data
             })
+            .then(data => {
+                const deptosVinculacao = data.data.reduce((result, depto) => {
+                    result[depto['_id']] = depto.sigla
+                    return result
+                }, {})
+                setVinculacao(deptosVinculacao)
+            })
+            .then(() => { setLoading(false) });
     }
 
     useEffect(() => {
-        fetchPontos();
+        fetchDeptos();
     }, [])
 
-    const createPonto = (ponto) => {
-        return fetch(`http://localhost:3000/api/funcionario/${props.funcionario._id}/ponto`,
+    const createDepto = (depto) => {
+        return fetch('http://localhost:3000/api/depto',
             {
                 headers,
                 method: 'post',
-                body: JSON.stringify(ponto)
+                body: JSON.stringify(depto)
             })
             .then(response => response.json())
-            .then(() => fetchPontos());
+            .then(() => fetchDeptos())
     }
 
-    const updatePonto = (ponto) => {
-        return fetch(`http://localhost:3000/api/ponto/${ponto._id}`,
+    const updateDepto = (depto) => {
+        return fetch(`http://localhost:3000/api/depto/${depto._id}`,
             {
                 headers,
                 method: 'put',
-                body: JSON.stringify(ponto)
+                body: JSON.stringify(depto)
             })
             .then(response => response.json())
-            .then(() => fetchPontos());
+            .then(() => fetchDeptos());
     }
 
-    const deletePonto = (ponto) => {
-        return fetch(`http://localhost:3000/api/ponto/${ponto._id}`,
+    const deleteDepto = (depto) => {
+        return fetch(`http://localhost:3000/api/depto/${depto._id}`,
             {
                 headers,
                 method: 'delete',
             })
             .then(response => response.json())
-            .then(() => fetchPontos());
+            .then(() => fetchDeptos())
     }
 
     if (loading) { return <p>Carregando . . . </p> }
     return (
         <MaterialTable
-            style={{ padding: 30, backgroundColor: '#f4f4f4' }}
-            options={{ search: false }}
-
             icons={tableIcons}
-            title="Pontos do Servidor"
+            title="Unidades"
             columns={columns}
-            data={pontos}
+            actions={[{
+                icon: AssignmentIndIcon,
+                tooltip: 'Ver servidores',
+                onClick: (event, rowData) => history.push(`funcionarios`, rowData)
+            }]}
+            data={deptos}
             editable={{
-                onRowAdd: createPonto,
-                onRowUpdate: updatePonto,
-                onRowDelete: deletePonto
+                onRowAdd: createDepto,
+                onRowUpdate: updateDepto,
+                onRowDelete: deleteDepto
             }}
         />
     );

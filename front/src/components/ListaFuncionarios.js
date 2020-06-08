@@ -17,7 +17,6 @@ import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
-import { render } from 'react-dom';
 
 const tableIcons = {
     Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -39,8 +38,7 @@ const tableIcons = {
     ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
-export default function ListaFuncionarios() {
-
+export default function ListaFuncionarios(props) {
     const [funcionarios, setFuncionarios] = useState([]);
     const [deptos, setDeptos] = useState({});
     const [loading, setLoading] = useState(true);
@@ -57,7 +55,7 @@ export default function ListaFuncionarios() {
     })
 
     const fetchFuncionarios = () => {
-        return fetch('http://localhost:3000/api/funcionario', { headers })
+        return fetch(`http://localhost:3000/api/funcionario?depto=${props.location.state._id}`, { headers })
             .then(response => response.json())
             .then(data => {
                 setFuncionarios(data.data);
@@ -69,16 +67,14 @@ export default function ListaFuncionarios() {
         return fetch('http://localhost:3000/api/depto', { headers })
             .then(response => response.json())
             .then(data => {
-                console.log('Data deptos: ', data.data)
                 let objectDeptos = data.data.reduce((result, depto) => {
-                    result[depto['_id']] = depto.descricao
+                    result[depto['_id']] = depto.sigla
                     return result
                 }, {})
                 console.log(objectDeptos)
                 return objectDeptos
             })
             .then(data => setDeptos(data))
-            .then(console.log('Depto', deptos))
     }
 
     useEffect(() => {
@@ -94,8 +90,7 @@ export default function ListaFuncionarios() {
                 body: JSON.stringify(funcionario)
             })
             .then(response => response.json())
-            .then(data => console.log(data))
-            .then(fetchFuncionarios())
+            .then(() => fetchFuncionarios())
     }
 
     const updateFuncionario = (funcionario) => {
@@ -106,8 +101,7 @@ export default function ListaFuncionarios() {
                 body: JSON.stringify(funcionario)
             })
             .then(response => response.json())
-            .then(data => console.log(data))
-            .then(fetchFuncionarios())
+            .then(() => fetchFuncionarios())
     }
 
     const deleteFuncionario = (funcionario) => {
@@ -117,18 +111,17 @@ export default function ListaFuncionarios() {
                 method: 'delete',
             })
             .then(response => response.json())
-            .then(data => console.log(data))
-            .then(fetchFuncionarios())
+            .then(() => fetchFuncionarios())
     }
 
     if (loading) { return <p>Carregando . . . </p> }
     return (
         <MaterialTable
             icons={tableIcons}
-            title="Servidores - Lotação"
+            title={`Lista de Servidores - ${props.location.state.descricao} - 
+            ${props.location.state.sigla}`}
             columns={columns}
             data={funcionarios}
-            onRowClick={(event, rowData, togglePanel) => togglePanel(event)}
             editable={{
                 onRowAdd: createFuncionario,
                 onRowUpdate: updateFuncionario,
