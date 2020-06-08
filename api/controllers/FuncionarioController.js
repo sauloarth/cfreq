@@ -8,7 +8,10 @@ exports.funcionarioList = [
     isAuthenticated,
     async (req, res) => {
         try {
-            const funcionario = await Funcionario.find({ isActive: true })
+            const funcionario = await Funcionario.find({
+                isActive: true,
+                deptoAtual: req.query.depto
+            })
                 .populate('deptoAtual', 'descricao');
             return apiResponse.sucessResponseWithData(res,
                 'Listagem recuperada com sucesso', funcionario);
