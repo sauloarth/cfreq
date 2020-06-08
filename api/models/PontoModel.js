@@ -6,7 +6,7 @@ const schema = new mongoose.Schema({
     ano: { type: Number, min: 0, max: 9999, default: new Date().getFullYear() },
     funcionario: { type: Schema.Types.ObjectId, ref: 'Funcionario', required: true },
     depto: { type: Schema.Types.ObjectId, ref: 'Depto', required: true },
-    status: { type: String, default: 'não entregue' },
+    status: { type: Number, default: 0 },
     observacao: { type: String }
 }, { timestamps: true });
 
