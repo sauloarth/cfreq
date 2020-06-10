@@ -19,6 +19,10 @@ import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
+import api from '../services/api';
+import Feedback from './Feedback';
+import errorFormatter from '../services/errorFormatter';
+import localization from '../services/materialTableProperties';
 
 
 const tableIcons = {
@@ -46,26 +50,22 @@ export default function ListaDeptos() {
     const [deptos, setDeptos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [vinculacao, setVinculacao] = useState({})
+    const [error, setError] = useState({})
     const history = useHistory();
 
     const columns = [
         { title: 'Codigo', field: 'codigo', width: 8 },
         { title: 'Descrição', field: 'descricao', width: 300 },
         { title: 'Sigla', field: 'sigla', width: 40 },
-        { title: 'Vinculado à', field: 'vinculacao._id', lookup: vinculacao, width: 200 }
+        { title: 'Vinculado à', field: 'vinculacao', lookup: vinculacao, width: 200 }
     ]
 
-    const headers = new Headers({
-        'Content-type': 'application/json',
-        'x-auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWJjNGM2MGRlMWNkMDUzZGRmNzcxZWIiLCJub21lIjoiVGVzdGVkYVNpbHZhIiwibWF0cmljdWxhIjoiMTIzNDU2NyIsImVtYWlsIjoic2F1bG9hcnRoQGdtYWlsLmNvbSIsImlhdCI6MTU4OTQ1NDMwNywiZXhwIjoxNTg5NDk3NTA3fQ.AY_7WiQkLWg_8VjsiOevxzAMLwo-8ud1SpLJy9lZKOU'
-    })
-
     const fetchDeptos = () => {
-        return fetch('http://localhost:3000/api/depto', { headers })
-            .then(response => response.json())
+        setError({})
+        return api.get('/depto')
             .then(data => {
-                setDeptos(data.data);
-                return data
+                setDeptos(data.data.data);
+                return data.data
             })
             .then(data => {
                 const deptosVinculacao = data.data.reduce((result, depto) => {
@@ -74,7 +74,9 @@ export default function ListaDeptos() {
                 }, {})
                 setVinculacao(deptosVinculacao)
             })
-            .then(() => { setLoading(false) });
+            .then(() => {
+                setLoading(false)
+            })
     }
 
     useEffect(() => {
@@ -82,68 +84,70 @@ export default function ListaDeptos() {
     }, [])
 
     const createDepto = (depto) => {
-        return fetch('http://localhost:3000/api/depto',
-            {
-                headers,
-                method: 'post',
-                body: JSON.stringify(depto)
-            })
-            .then(response => response.json())
+        return api.post('/depto', depto)
             .then(() => fetchDeptos())
+            .catch(error => {
+                const formatedError = errorFormatter(error)
+                setError({ message: formatedError })
+                setTimeout(() => setError({}), 7000)
+            })
     }
 
     const updateDepto = (depto) => {
-        return fetch(`http://localhost:3000/api/depto/${depto._id}`,
-            {
-                headers,
-                method: 'put',
-                body: JSON.stringify(depto)
+        return api.put(`/depto/${depto._id}`, depto)
+            .then(() => fetchDeptos())
+            .catch(error => {
+                const formatedError = errorFormatter(error)
+                setError({ message: formatedError })
+                setTimeout(() => setError({}), 7000)
             })
-            .then(response => response.json())
-            .then(() => fetchDeptos());
     }
 
     const deleteDepto = (depto) => {
-        return fetch(`http://localhost:3000/api/depto/${depto._id}`,
-            {
-                headers,
-                method: 'delete',
-            })
-            .then(response => response.json())
+        return api.delete(`depto/${depto._id}`)
             .then(() => fetchDeptos())
+            .catch(error => {
+                const formatedError = errorFormatter(error)
+                setError({ message: formatedError })
+                setTimeout(() => setError({}), 7000)
+            })
     }
 
     if (loading) { return <p>Carregando . . . </p> }
     return (
-        <MaterialTable
-            icons={tableIcons}
-            title="Unidades"
-            columns={columns}
-            localization={
-                {
-                    toolbar: {
-                        searchPlaceholder: "Buscar unidade",
-                        searchTooltip: "Buscar por unidade específica"
-                    },
-                    body: {
-                        addTooltip: "Criar unidade",
-                        editTooltip: "Editar dados da unidade",
-                        deleteTooltip: "Desativar uma unidade",
+        <div>
+            {error.message && <Feedback text={error.message} show={true} severity="error" />}
+            <MaterialTable
+                icons={tableIcons}
+                title="Unidades"
+                columns={columns}
+                localization={
+                    {
+                        ...localization,
+                        toolbar: {
+                            searchPlaceholder: "Buscar unidade",
+                            searchTooltip: "Buscar por unidade específica"
+                        },
+                        body: {
+                            addTooltip: "Criar unidade",
+                            editTooltip: "Editar dados da unidade",
+                            deleteTooltip: "Desativar uma unidade",
+                        },
                     }
                 }
-            }
-            options={{ pageSize: 10 }}
-            actions={[{
-                icon: AssignmentIndIcon,
-                tooltip: 'Ver servidores da unidade',
-                onClick: (event, rowData) => history.push(`funcionarios`, rowData)
-            }]}
-            data={deptos}
-            editable={{
-                onRowAdd: createDepto,
-                onRowUpdate: updateDepto,
-                onRowDelete: deleteDepto
-            }}
-        />
+                options={{ pageSize: 10, emptyRowsWhenPaging: false }}
+                actions={[{
+                    icon: AssignmentIndIcon,
+                    tooltip: 'Ver servidores da unidade',
+                    onClick: (event, rowData) => history.push(`funcionarios`, rowData)
+                }]}
+                data={deptos}
+                editable={{
+                    onRowAdd: createDepto,
+                    onRowUpdate: updateDepto,
+                    onRowDelete: deleteDepto,
+                }}
+            />
+        </div>
     );
 }

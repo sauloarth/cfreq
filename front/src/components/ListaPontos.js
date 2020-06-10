@@ -16,6 +16,12 @@ import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
+import api from '../services/api';
+import Feedback from './Feedback';
+
+import errorFormatter from '../services/errorFormatter';
+import localization from '../services/materialTableProperties';
+
 
 const tableIcons = {
     Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -40,6 +46,8 @@ const tableIcons = {
 export default function ListaPontos(props) {
     const [pontos, setPontos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState({});
+    const [info, setInfo] = useState({});
     const meses = {
         0: 'Janeiro',
         1: 'Fevereiro',
@@ -62,83 +70,103 @@ export default function ListaPontos(props) {
         3: 'conferido'
     }
 
+    const anoAtual = new Date().getFullYear()
+    const mesAtual = new Date().getMonth()
+    const deptoAtual = props.funcionario.deptoAtual._id
+
     const columns = [
-        { title: 'Ano', field: 'ano', width: 4, inicialEditValue: (new Date().getFullYear()) },
-        { title: 'Mes', field: 'mes', width: 4, type: 'numeric', lookup: meses, inicialEditValue: (new Date().getFullYear()) },
+        { title: 'Ano', field: 'ano', width: 10, initialEditValue: anoAtual },
+        { title: 'Mes', field: 'mes', width: 70, type: 'numeric', lookup: meses, initialEditValue: mesAtual },
         {
-            title: 'Lotação do Ponto', field: 'depto._id',
-            lookup: props.deptos, inicialEditValue: props.funcionario.deptoAtual._id, maxWidth: 30
+            title: 'Lotação do Ponto', field: 'depto',
+            lookup: props.deptos, initialEditValue: deptoAtual, width: 100,
         },
-        { title: 'Status', field: 'status', width: 20, lookup: status, inicialEditValue: 0 },
-        { title: 'Obsevação', field: 'observacao', width: 200 }
+        { title: 'Status', field: 'status', width: 80, lookup: status, initialEditValue: 0 },
+        { title: 'Obsevação', field: 'observacao', width: 300 }
     ]
 
-    const headers = new Headers({
-        'Content-type': 'application/json',
-        'x-auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWJjNGM2MGRlMWNkMDUzZGRmNzcxZWIiLCJub21lIjoiVGVzdGVkYVNpbHZhIiwibWF0cmljdWxhIjoiMTIzNDU2NyIsImVtYWlsIjoic2F1bG9hcnRoQGdtYWlsLmNvbSIsImlhdCI6MTU4OTQ1NDMwNywiZXhwIjoxNTg5NDk3NTA3fQ.AY_7WiQkLWg_8VjsiOevxzAMLwo-8ud1SpLJy9lZKOU'
-    })
-
     const fetchPontos = () => {
-        return fetch(`http://localhost:3000/api/funcionario/${props.funcionario._id}/ponto`, { headers })
-            .then(response => response.json())
+        return api.get(`/funcionario/${props.funcionario._id}/ponto`)
             .then(data => {
-                setPontos(data.data);
+                setPontos(data.data.data);
                 setLoading(false)
             })
     }
 
     useEffect(() => {
         fetchPontos();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const createPonto = (ponto) => {
-        return fetch(`http://localhost:3000/api/funcionario/${props.funcionario._id}/ponto`,
-            {
-                headers,
-                method: 'post',
-                body: JSON.stringify(ponto)
+        return api.post(`/funcionario/${props.funcionario._id}/ponto`, ponto)
+            .then(response => {
+                setInfo({ message: response.data.message })
+                setTimeout(() => setInfo({}), 5000)
             })
-            .then(response => response.json())
-            .then(() => fetchPontos());
+            .then(() => fetchPontos())
+            .catch(error => {
+                const formatedError = errorFormatter(error)
+                setError({ message: formatedError })
+                setTimeout(() => setError({}), 7000)
+            })
     }
 
     const updatePonto = (ponto) => {
-        return fetch(`http://localhost:3000/api/ponto/${ponto._id}`,
-            {
-                headers,
-                method: 'put',
-                body: JSON.stringify(ponto)
+        return api.put(`/ponto/${ponto._id}`, ponto)
+            .then(response => {
+                setInfo({ message: response.data.message })
+                setTimeout(() => setInfo({}), 5000)
             })
-            .then(response => response.json())
-            .then(() => fetchPontos());
+            .then(() => fetchPontos())
+            .catch(error => {
+                const formatedError = errorFormatter(error)
+                setError({ message: formatedError })
+                setTimeout(() => setError({}), 7000)
+            })
     }
 
     const deletePonto = (ponto) => {
-        return fetch(`http://localhost:3000/api/ponto/${ponto._id}`,
-            {
-                headers,
-                method: 'delete',
+        return api.delete(`/ponto/${ponto._id}`)
+            .then(response => {
+                setInfo({ message: response.data.message })
+                setTimeout(() => setInfo({}), 5000)
             })
-            .then(response => response.json())
-            .then(() => fetchPontos());
+            .then(() => fetchPontos())
+            .catch(error => {
+                const formatedError = errorFormatter(error)
+                setError({ message: formatedError })
+                setTimeout(() => setError({}), 7000)
+            })
     }
 
-    if (loading) { return <p>Carregando . . . </p> }
+    // if (loading) { return <p>Carregando . . . </p> }
     return (
-        <MaterialTable
-            style={{ padding: 30, backgroundColor: '#f4f4f4' }}
-            options={{ search: false }}
-
-            icons={tableIcons}
-            title="Pontos do Servidor"
-            columns={columns}
-            data={pontos}
-            options={{ pageSize: 12 }}
-            editable={{
-                onRowAdd: createPonto,
-                onRowUpdate: updatePonto,
-                onRowDelete: deletePonto
-            }}
-        />
+        <div>
+            {error.message && <Feedback text={error.message} show={true} severity="error" />}
+            {info.message && <Feedback text={info.message} show={true} severity="success" />}
+            <MaterialTable
+                style={{ padding: 30, backgroundColor: '#f4f4f4' }}
+                localization={
+                    {
+                        ...localization,
+                        body: {
+                            addTooltip: "Cadastrar Ponto"
+                        }
+                    }
+                }
+                icons={tableIcons}
+                title="Pontos do Servidor"
+                columns={columns}
+                data={pontos}
+                isLoading={loading}
+                options={{ pageSize: 10, search: false, tableLayout: "fixed", addRowPosition: "first", padding: "dense", emptyRowsWhenPaging: false }}
+                editable={{
+                    onRowAdd: createPonto,
+                    onRowUpdate: updatePonto,
+                    onRowDelete: deletePonto
+                }}
+            />
+        </div>
     );
 }

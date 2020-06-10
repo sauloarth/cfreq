@@ -17,6 +17,8 @@ import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
+import api from '../services/api';
+import localization from '../services/materialTableProperties';
 
 const tableIcons = {
     Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -49,29 +51,21 @@ export default function ListaFuncionarios(props) {
         { title: 'Lotação Atual', field: 'deptoAtual._id', lookup: deptos, width: 300 }
     ]
 
-    const headers = new Headers({
-        'Content-type': 'application/json',
-        'x-auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZWJjNGM2MGRlMWNkMDUzZGRmNzcxZWIiLCJub21lIjoiVGVzdGVkYVNpbHZhIiwibWF0cmljdWxhIjoiMTIzNDU2NyIsImVtYWlsIjoic2F1bG9hcnRoQGdtYWlsLmNvbSIsImlhdCI6MTU4OTQ1NDMwNywiZXhwIjoxNTg5NDk3NTA3fQ.AY_7WiQkLWg_8VjsiOevxzAMLwo-8ud1SpLJy9lZKOU'
-    })
-
     const fetchFuncionarios = () => {
-        return fetch(`http://localhost:3000/api/funcionario?depto=${props.location.state._id}`, { headers })
-            .then(response => response.json())
+        return api.get(`/funcionario?depto=${props.location.state._id}&vinculacao=${props.location.state.vinculacao}`)
             .then(data => {
-                setFuncionarios(data.data);
+                setFuncionarios(data.data.data);
                 setLoading(false)
             })
     }
 
     const fetchDeptos = () => {
-        return fetch('http://localhost:3000/api/depto', { headers })
-            .then(response => response.json())
+        return api.get('/depto')
             .then(data => {
-                let objectDeptos = data.data.reduce((result, depto) => {
+                let objectDeptos = data.data.data.reduce((result, depto) => {
                     result[depto['_id']] = depto.sigla
                     return result
                 }, {})
-                console.log(objectDeptos)
                 return objectDeptos
             })
             .then(data => setDeptos(data))
@@ -80,37 +74,21 @@ export default function ListaFuncionarios(props) {
     useEffect(() => {
         fetchFuncionarios();
         fetchDeptos();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const createFuncionario = (funcionario) => {
-        return fetch('http://localhost:3000/api/funcionario',
-            {
-                headers,
-                method: 'post',
-                body: JSON.stringify(funcionario)
-            })
-            .then(response => response.json())
+        return api.post('/funcionario', funcionario)
             .then(() => fetchFuncionarios())
     }
 
     const updateFuncionario = (funcionario) => {
-        return fetch(`http://localhost:3000/api/funcionario/${funcionario._id}`,
-            {
-                headers,
-                method: 'put',
-                body: JSON.stringify(funcionario)
-            })
-            .then(response => response.json())
+        return api.put(`/funcionario/${funcionario._id}`, funcionario)
             .then(() => fetchFuncionarios())
     }
 
     const deleteFuncionario = (funcionario) => {
-        return fetch(`http://localhost:3000/api/funcionario/${funcionario._id}`,
-            {
-                headers,
-                method: 'delete',
-            })
-            .then(response => response.json())
+        return api.delete(`/funcionario/${funcionario._id}`)
             .then(() => fetchFuncionarios())
     }
 
@@ -123,6 +101,7 @@ export default function ListaFuncionarios(props) {
             columns={columns}
             localization={
                 {
+                    ...localization,
                     toolbar: {
                         searchPlaceholder: "Buscar por funcionario",
                         searchTooltip: "Buscar por funcionario específico na unidade"
@@ -133,10 +112,11 @@ export default function ListaFuncionarios(props) {
                         deleteTooltip: "Desativar um funcionario",
                     },
 
+
                 }
             }
             data={funcionarios}
-            options={{ pageSize: 10 }}
+            options={{ pageSize: 10, detailPanelType: "single", emptyRowsWhenPaging: false }}
             editable={{
                 onRowAdd: createFuncionario,
                 onRowUpdate: updateFuncionario,
