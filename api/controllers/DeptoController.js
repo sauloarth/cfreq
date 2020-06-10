@@ -8,7 +8,6 @@ exports.deptoList = [
     async (req, res) => {
         try {
             const deptos = await Depto.find({ isActive: true })
-                .populate('vinculacao', 'descricao')
                 .sort({ sigla: 1 });
             return apiResponse.sucessResponseWithData(res,
                 'Listagem recuperada com sucesso', deptos);
@@ -104,9 +103,9 @@ exports.deptoUpdate = [
                     .validationErrorWithData(res, 'Erros de validação.', errors);
             }
             const _id = req.params.id;
-            const { codigo, descricao, sigla } = req.body;
+            const { codigo, descricao, sigla, vinculacao } = req.body;
 
-            const depto = await Depto.findOneAndUpdate({ _id }, { codigo, descricao, sigla }, { new: true })
+            const depto = await Depto.findOneAndUpdate({ _id }, { codigo, descricao, sigla, vinculacao }, { new: true })
             if (!depto) return apiResponse.notFoundResponse(res, 'Não foi possível atualizar o depto');
 
             return apiResponse.sucessResponseWithData(res, 'Depto atualizado com sucesso', depto);

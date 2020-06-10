@@ -8,13 +8,28 @@ exports.funcionarioList = [
     isAuthenticated,
     async (req, res) => {
         try {
-            const funcionario = await Funcionario.find({
-                isActive: true,
-                deptoAtual: req.query.depto
-            })
-                .populate('deptoAtual', 'descricao');
-            return apiResponse.sucessResponseWithData(res,
-                'Listagem recuperada com sucesso', funcionario);
+            if (req.query.depto) {
+
+                const funcionario = await Funcionario.find({
+                    isActive: true,
+                    deptoAtual: req.query.depto
+                })
+                    .populate('deptoAtual', 'descricao');
+                return apiResponse.sucessResponseWithData(res,
+                    'Listagem recuperada com sucesso', funcionario);
+            }
+
+            if (req.query.busca) {
+
+                const funcionario = await Funcionario.find({
+                    $text: {
+                        $search: req.query.busca,
+                    }
+                })
+                    .populate('deptoAtual', 'descricao');
+                return apiResponse.sucessResponseWithData(res,
+                    'Listagem recuperada com sucesso', funcionario);
+            }
         } catch (error) {
             return apiResponse.errorResponse(res, error);
         }

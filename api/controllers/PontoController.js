@@ -25,8 +25,7 @@ exports.pontoListByFuncionario = [
     async (req, res) => {
         try {
             const pontos = await Ponto.find({ funcionario: req.params.idFuncionario })
-                .populate('depto', 'descricao')
-                .sort({ mes: -1, ano: -1 })
+                .sort({ ano: -1, mes: -1 })
             return apiResponse.sucessResponseWithData(res,
                 'Listagem recuperada com sucesso', pontos);
         } catch (error) {
@@ -68,7 +67,6 @@ exports.pontoCreate = [
 
         }),
     async (req, res) => {
-        console.log('Whatareq', req.params)
         try {
             const errors = [...validationResult(req).errors];
             if (errors.length > 0) {
