@@ -15,6 +15,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import api from '../services/api';
 import { login } from '../services/auth';
+import Feedback from '../components/Feedback';
 
 function Copyright() {
     return (
@@ -59,6 +60,7 @@ function SignIn() {
         const name = event.target.name
         const value = event.target.value
         setState((prev) => {
+            prev.error = null
             return { ...prev, ...{ [name]: [value] } }
         })
     }
@@ -78,9 +80,8 @@ function SignIn() {
                 login(token, nome, matricula);
                 history.push('/app/departamentos');
             } catch (error) {
-                console.log(error)
                 setState((prev) => {
-                    return { ...prev, ...{ error: 'Erro ao entrar.' } }
+                    return { ...prev, ...{ error: error.response.data.message } }
                 })
             }
 
@@ -91,9 +92,11 @@ function SignIn() {
         history.push('/signup')
     }
 
-
     return (
         <Container component="main" maxWidth="xs">
+            {
+                state.error && <Feedback text={state.error} show={true} severity="error" />
+            }
             <CssBaseline />
             <div className={classes.paper}>
                 <Avatar className={classes.avatar}>
@@ -154,6 +157,7 @@ function SignIn() {
                     </Grid>
                 </form>
             </div>
+
             <Box mt={8}>
                 <Copyright />
             </Box>

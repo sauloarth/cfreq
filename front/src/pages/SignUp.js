@@ -14,6 +14,8 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import api from '../services/api';
+import Feedback from '../components/Feedback';
+import errorFormatter from '../services/errorFormatter';
 
 function Copyright() {
     return (
@@ -58,6 +60,7 @@ function SignUp() {
         const name = event.target.name
         const value = event.target.value
         setState((prev) => {
+            prev.error = null
             return { ...prev, ...{ [name]: [value] } }
         })
     }
@@ -75,9 +78,9 @@ function SignUp() {
                 await api.post('/auth/register', { matricula, nome, email, password });
                 history.replace('/complete');
             } catch (error) {
-                console.log(error)
+                const formatedError = errorFormatter(error)
                 setState((prev) => {
-                    return { ...prev, ...{ error: 'Erro ao registrar.' } }
+                    return { ...prev, ...{ error: formatedError } }
                 })
             }
 
@@ -91,6 +94,9 @@ function SignUp() {
 
     return (
         <Container component="main" maxWidth="xs">
+            {
+                state.error && <Feedback text={state.error} show={true} severity="error" />
+            }
             <CssBaseline />
             <div className={classes.paper}>
                 <Avatar className={classes.avatar}>

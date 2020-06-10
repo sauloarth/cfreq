@@ -57,8 +57,6 @@ function CompleteRegistry(props) {
             .catch(error =>
                 history.replace('/confirmationError', { message: error.response.data.message })
             )
-
-
     }
 
     const handleComplete = () => {
@@ -67,6 +65,7 @@ function CompleteRegistry(props) {
 
     useEffect(() => {
         confirmEmail();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     if (!confirmed)
