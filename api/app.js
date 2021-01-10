@@ -38,7 +38,6 @@ const db = mongoose.connection;
 app.use('/api/', apiRouter);
 
 
-
 const port = process.env.PORT || '3001';
 app.listen(port, () => {
     console.log('Server running on port ', port)

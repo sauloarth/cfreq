@@ -76,12 +76,12 @@ export default function ListaPontos(props) {
 
     const columns = [
         { title: 'Ano', field: 'ano', width: 10, initialEditValue: anoAtual },
-        { title: 'Mes', field: 'mes', width: 70, type: 'numeric', lookup: meses, initialEditValue: mesAtual },
+        { title: 'Mes', field: 'mes', width: 70, type: 'numeric', lookup: meses },
         {
             title: 'Lotação do Ponto', field: 'depto',
             lookup: props.deptos, initialEditValue: deptoAtual, width: 100,
         },
-        { title: 'Status', field: 'status', width: 80, lookup: status, initialEditValue: 0 },
+        { title: 'Status', field: 'status', width: 80, lookup: status },
         { title: 'Obsevação', field: 'observacao', width: 300 }
     ]
 
